@@ -39,7 +39,7 @@ assert BASEURL.startswith('https://'), "The Nexmo API base URL must be SSL-secur
 
 
 class NexmoRequest(object):
-    self.reqtypes = [
+    reqtypes = [
         'json',
         'xml'
     ]
@@ -96,7 +96,7 @@ class Nexmo2FA(NexmoRequest):
 
 
 class NexmoMessage(NexmoRequest):
-    self.smstypes = [
+    smstypes = [
         'text',
         'binary',
         'wappush',
@@ -104,7 +104,7 @@ class NexmoMessage(NexmoRequest):
         'vcard',
         'unicode'
     ]
-    self.apireqs = [
+    apireqs = [
         'balance',
         'pricing',
         'numbers'
