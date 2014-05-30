@@ -36,15 +36,19 @@ BASEURL = "https://rest.nexmo.com"
 
 
 class NexmoRequest(object):
+    @property
+    def request_type(self):
+        raise NotImplementedError
+
     def build_request(self):
         raise NotImplementedError
 
     def send_request(self):
         if not self.build_request():
             return False
-        if self.sms['reqtype'] == 'json':
+        if self.request_type == 'json':
             return self.send_request_json(self.request)
-        elif self.sms['reqtype'] == 'xml':
+        elif self.request_type == 'xml':
             return self.send_request_xml(self.request)
 
     def send_request_json(self, request):
@@ -61,7 +65,7 @@ class NexmoRequest(object):
 
 
 class Nexmo2FA(NexmoRequest):
-    pass
+    request_type = 'json'
 
 
 class NexmoMessage(NexmoRequest):
@@ -88,6 +92,10 @@ class NexmoMessage(NexmoRequest):
             'json',
             'xml'
         ]
+
+    @property
+    def request_type(self):
+        return self.sms['reqtype']
 
     def build_request(self):
         # check SMS logic
