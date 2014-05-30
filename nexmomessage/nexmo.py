@@ -35,8 +35,36 @@ import json
 BASEURL = "https://rest.nexmo.com"
 
 
-class NexmoMessage:
+class NexmoRequest(object):
+    def build_request(self):
+        raise NotImplementedError
 
+    def send_request(self):
+        if not self.build_request():
+            return False
+        if self.sms['reqtype'] == 'json':
+            return self.send_request_json(self.request)
+        elif self.sms['reqtype'] == 'xml':
+            return self.send_request_xml(self.request)
+
+    def send_request_json(self, request):
+        url = request
+        req = urllib2.Request(url=url)
+        req.add_header('Accept', 'application/json')
+        try:
+            return json.load(urllib2.urlopen(req))
+        except ValueError:
+            return False
+
+    def send_request_xml(self, request):
+        return "XML request not implemented yet."
+
+
+class Nexmo2FA(NexmoRequest):
+    pass
+
+
+class NexmoMessage(NexmoRequest):
     def __init__(self, details):
         self.sms = details
         self.sms.setdefault('type', 'text')
@@ -60,80 +88,6 @@ class NexmoMessage:
             'json',
             'xml'
         ]
-
-    def url_fix(self, s, charset='utf-8'):
-        if isinstance(s, unicode):
-            s = s.encode(charset, 'ignore')
-        scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
-        path = urllib.quote(path, '/%')
-        qs = urllib.quote_plus(qs, ':&=')
-        return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
-
-    def set_text_info(self, text):
-        # automatically transforms msg to text SMS
-        self.sms['type'] = 'text'
-        # if message have unicode symbols send as unicode
-        try:
-            text.decode('ascii')
-        except:
-            self.sms['type'] = 'unicode'
-            if isinstance(text, unicode):
-                text = text.encode('utf8')
-        self.sms['text'] = text
-
-    def set_bin_info(self, body, udh):
-        # automatically transforms msg to binary SMS
-        self.sms['type'] = 'binary'
-        self.sms['body'] = body
-        self.sms['udh'] = udh
-
-    def set_wappush_info(self, title, url, validity=False):
-        # automatically transforms msg to wappush SMS
-        self.sms['type'] = 'wappush'
-        self.sms['title'] = title
-        self.sms['url'] = url
-        self.sms['validity'] = validity
-
-    def set_vcal_info(self, vcal):
-        # automatically transforms msg to vcal SMS
-        self.sms['type'] = 'vcal'
-        self.sms['vcal'] = vcal
-
-    def set_vcard_info(self, vcard):
-        # automatically transforms msg to vcard SMS
-        self.sms['type'] = 'vcard'
-        self.sms['vcard'] = vcard
-
-    def check_sms(self):
-        # mandatory parameters for all requests
-        if not self.sms.get('api_key') or not self.sms.get('api_secret'):
-            raise Exception("API key or secret not set")
-
-        # API requests handling
-        if self.sms['type'] in self.apireqs:
-            if self.sms['type'] == 'balance' or self.sms['type'] == 'numbers':
-                return True
-            elif self.sms['type'] == 'pricing' and not self.sms.get('country'):
-                raise Exception("Pricing needs counry")
-            return True
-        # SMS logic, check Nexmo doc for details
-        elif self.sms['type'] not in self.smstypes:
-            raise Exception("Unknown type")
-        elif self.sms['type'] == 'text' and not self.sms.get('text'):
-            raise Exception("text missing")
-        elif self.sms['type'] == 'binary' and (not self.sms.get('body') or
-                                               not self.sms.get('udh')):
-            raise Exception("binary payload missing")
-        elif self.sms['type'] == 'wappush' and (not self.sms.get('title') or
-                                                not self.sms.get('url')):
-            raise Exception("title or URL missing")
-        elif self.sms['type'] == 'vcal' and not self.sms.get('vcal'):
-            raise Exception("vcal data missing")
-        elif self.sms['type'] == 'vcard' and not self.sms.get('vcard'):
-            raise Exception("vcard data missing")
-        elif not self.sms.get('from') or not self.sms.get('to'):
-            raise Exception("From or to missing")
-        return True
 
     def build_request(self):
         # check SMS logic
@@ -168,25 +122,72 @@ class NexmoMessage:
             self.request = server + "?" + urllib.urlencode(params)
             return self.request
 
+    def check_sms(self):
+        # mandatory parameters for all requests
+        if not self.sms.get('api_key') or not self.sms.get('api_secret'):
+            raise Exception("API key or secret not set")
+
+        # API requests handling
+        if self.sms['type'] in self.apireqs:
+            if self.sms['type'] == 'balance' or self.sms['type'] == 'numbers':
+                return True
+            elif self.sms['type'] == 'pricing' and not self.sms.get('country'):
+                raise Exception("Pricing needs country")
+            return True
+        # SMS logic, check Nexmo doc for details
+        elif self.sms['type'] not in self.smstypes:
+            raise Exception("Unknown type")
+        elif self.sms['type'] == 'text' and not self.sms.get('text'):
+            raise Exception("text missing")
+        elif self.sms['type'] == 'binary' and (not self.sms.get('body') or
+                                               not self.sms.get('udh')):
+            raise Exception("Binary payload missing")
+        elif self.sms['type'] == 'wappush' and (not self.sms.get('title') or
+                                                not self.sms.get('url')):
+            raise Exception("Title or URL missing")
+        elif self.sms['type'] == 'vcal' and not self.sms.get('vcal'):
+            raise Exception("vCal data missing")
+        elif self.sms['type'] == 'vcard' and not self.sms.get('vcard'):
+            raise Exception("vCard data missing")
+        elif not self.sms.get('from') or not self.sms.get('to'):
+            raise Exception("From or to missing")
+        return True
+
     def get_details(self):
         return self.sms
 
-    def send_request(self):
-        if not self.build_request():
-            return False
-        if self.sms['reqtype'] == 'json':
-            return self.send_request_json(self.request)
-        elif self.sms['reqtype'] == 'xml':
-            return self.send_request_xml(self.request)
+    def set_bin_info(self, body, udh):
+        # automatically transforms msg to binary SMS
+        self.sms['type'] = 'binary'
+        self.sms['body'] = body
+        self.sms['udh'] = udh
 
-    def send_request_json(self, request):
-        url = request
-        req = urllib2.Request(url=url)
-        req.add_header('Accept', 'application/json')
+    def set_text_info(self, text):
+        # automatically transforms msg to text SMS
+        self.sms['type'] = 'text'
+        # if message have unicode symbols send as unicode
         try:
-            return json.load(urllib2.urlopen(req))
-        except ValueError:
-            return False
+            text.decode('ascii')
+        except:
+            self.sms['type'] = 'unicode'
+            if isinstance(text, unicode):
+                text = text.encode('utf8')
+        self.sms['text'] = text
 
-    def send_request_xml(self, request):
-        return "XML request not implemented yet."
+    def set_vcal_info(self, vcal):
+        # automatically transforms msg to vcal SMS
+        self.sms['type'] = 'vcal'
+        self.sms['vcal'] = vcal
+
+    def set_vcard_info(self, vcard):
+        # automatically transforms msg to vcard SMS
+        self.sms['type'] = 'vcard'
+        self.sms['vcard'] = vcard
+
+    def set_wappush_info(self, title, url, validity=False):
+        # automatically transforms msg to wappush SMS
+        self.sms['type'] = 'wappush'
+        self.sms['title'] = title
+        self.sms['url'] = url
+        self.sms['validity'] = validity
+

@@ -1,1 +1,1 @@
-from nexmo import NexmoMessage
+from nexmo import Nexmo2FA, NexmoMessage
