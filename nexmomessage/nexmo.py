@@ -36,6 +36,15 @@ BASEURL = "https://rest.nexmo.com"
 
 
 class NexmoRequest(object):
+    self.reqtypes = [
+        'json',
+        'xml'
+    ]
+
+    def _validate_request_type(self):
+        if self.request_type not in self.reqtypes:
+            raise Exception("Unknown reqtype.")
+
     @property
     def request_type(self):
         raise NotImplementedError
@@ -69,29 +78,25 @@ class Nexmo2FA(NexmoRequest):
 
 
 class NexmoMessage(NexmoRequest):
+    self.smstypes = [
+        'text',
+        'binary',
+        'wappush',
+        'vcal',
+        'vcard',
+        'unicode'
+    ]
+    self.apireqs = [
+        'balance',
+        'pricing',
+        'numbers'
+    ]
+
     def __init__(self, details):
         self.sms = details
         self.sms.setdefault('type', 'text')
         self.sms.setdefault('server', BASEURL)
         self.sms.setdefault('reqtype', 'json')
-
-        self.smstypes = [
-            'text',
-            'binary',
-            'wappush',
-            'vcal',
-            'vcard',
-            'unicode'
-        ]
-        self.apireqs = [
-            'balance',
-            'pricing',
-            'numbers'
-        ]
-        self.reqtypes = [
-            'json',
-            'xml'
-        ]
 
     @property
     def request_type(self):
@@ -121,8 +126,7 @@ class NexmoMessage(NexmoRequest):
             return self.request
         else:
             # standard requests
-            if self.sms['reqtype'] not in self.reqtypes:
-                raise Exception("Unknown reqtype")
+            self._validate_request_type()
             params = self.sms.copy()
             params.pop('reqtype')
             params.pop('server')
