@@ -34,6 +34,9 @@ import json
 
 BASEURL = "https://rest.nexmo.com"
 
+# Ensure that all requests are sent over SSL, since the API Key is included
+assert BASEURL.startswith('https://'), "The Nexmo API base URL must be SSL-secured (i.e. must start with 'https://'.)"
+
 
 class NexmoRequest(object):
     self.reqtypes = [
@@ -49,6 +52,10 @@ class NexmoRequest(object):
     def request_type(self):
         raise NotImplementedError
 
+    @property
+    def server_url(self):
+        return BASEURL
+
     def build_request(self):
         raise NotImplementedError
 
@@ -56,12 +63,12 @@ class NexmoRequest(object):
         if not self.build_request():
             return False
         if self.request_type == 'json':
-            return self.send_request_json(self.request)
+            return self.send_request_json()
         elif self.request_type == 'xml':
-            return self.send_request_xml(self.request)
+            return self.send_request_xml()
 
-    def send_request_json(self, request):
-        url = request
+    def send_request_json(self):
+        url = self.request
         req = urllib2.Request(url=url)
         req.add_header('Accept', 'application/json')
         try:
@@ -69,12 +76,23 @@ class NexmoRequest(object):
         except ValueError:
             return False
 
-    def send_request_xml(self, request):
+    def send_request_xml(self):
         return "XML request not implemented yet."
 
 
 class Nexmo2FA(NexmoRequest):
     request_type = 'json'
+
+    def __init__(self, token):
+        self.token = token
+
+    def build_request(self):
+        if not self.token:
+            return False
+        self._validate_request_type()
+        server = "%s/sc/us/2fa/%s" % (self.server_url, self.request_type)
+        self.request = server + "?" + urllib.urlencode(params)
+        return self.request
 
 
 class NexmoMessage(NexmoRequest):
@@ -95,7 +113,6 @@ class NexmoMessage(NexmoRequest):
     def __init__(self, details):
         self.sms = details
         self.sms.setdefault('type', 'text')
-        self.sms.setdefault('server', BASEURL)
         self.sms.setdefault('reqtype', 'json')
 
     @property
@@ -111,17 +128,17 @@ class NexmoMessage(NexmoRequest):
             # balance
             if self.sms['type'] == 'balance':
                 self.request = "%s/account/get-balance/%s/%s" \
-                    % (self.sms['server'], self.sms['api_key'],
+                    % (self.server_url, self.sms['api_key'],
                        self.sms['api_secret'])
             # pricing
             elif self.sms['type'] == 'pricing':
                 self.request = "%s/account/get-pricing/outbound/%s/%s/%s" \
-                    % (self.sms['server'], self.sms['api_key'],
+                    % (self.server_url, self.sms['api_key'],
                        self.sms['api_secret'], self.sms['country'])
             # numbers
             elif self.sms['type'] == 'numbers':
                 self.request = "%s/account/numbers/%s/%s" \
-                    % (self.sms['server'], self.sms['api_key'],
+                    % (self.server_url, self.sms['api_key'],
                        self.sms['api_secret'])
             return self.request
         else:
@@ -129,8 +146,7 @@ class NexmoMessage(NexmoRequest):
             self._validate_request_type()
             params = self.sms.copy()
             params.pop('reqtype')
-            params.pop('server')
-            server = "%s/sms/%s" % (self.sms['server'], self.sms['reqtype'])
+            server = "%s/sms/%s" % (self.server_url, self.request_type)
             self.request = server + "?" + urllib.urlencode(params)
             return self.request
 
