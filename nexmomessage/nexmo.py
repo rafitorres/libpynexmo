@@ -44,18 +44,13 @@ class NexmoRequest(object):
         'xml'
     ]
 
-    def __init__(self, api_key, api_secret, from_number, to_number, request_type, *args, **kwargs):
-        if request_type in self.reqtypes:
-            self.request_type = request_type
-        else:
+    def __init__(self, api_key, api_secret, request_type, *args, **kwargs):
+        if request_type not in self.reqtypes:
             raise Exception("Unknown request type.")
 
-        self.params = {
-                    'api_key': api_key,
-                    'api_secret': api_secret,
-                    'from': from_number,
-                    'to': to_number
-                }
+        self.request_type = request_type
+        self.api_key = api_key
+        self.api_secret = api_secret
 
     @property
     def server_url(self):
@@ -86,13 +81,22 @@ class NexmoRequest(object):
 
 
 class Nexmo2FA(NexmoRequest):
-    def __init__(self, api_key, api_secret, from_number, to_number, request_type, *args, **kwargs):
-        super(Nexmo2FA, self).__init__(api_key, api_secret, from_number, to_number, request_type)
+    def __init__(self, api_key, api_secret, to_number, pin, request_type, *args, **kwargs):
+        super(Nexmo2FA, self).__init__(api_key, api_secret, request_type, *args, **kwargs)
+                }
+        self.to_number = to_number
+        self.pin = pin
 
     def build_request(self):
         if not self.token:
             return False
         server = "%s/sc/us/2fa/%s" % (self.server_url, self.request_type)
+        self.params = {
+                    'api_key': self.api_key,
+                    'api_secret': self.api_secret,
+                    'to': self.to_number,
+                    'pin': self.pin
+        }
         self.request = server + "?" + urllib.urlencode(self.params)
         return self.request
 
@@ -139,6 +143,12 @@ class NexmoMessage(NexmoRequest):
         else:
             # standard requests
             server = "%s/sms/%s" % (self.server_url, self.request_type)
+            self.params = {
+                'api_key': self.api_key,
+                'api_secret': self.api_secret,
+                'from': self.from_number,
+                'to': self.to_number
+            }
             self.request = server + "?" + urllib.urlencode(self.params)
             return self.request
 
@@ -210,4 +220,3 @@ class NexmoMessage(NexmoRequest):
         self.title = title
         self.url = url
         self.validity = validity
-
