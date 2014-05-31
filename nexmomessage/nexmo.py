@@ -125,18 +125,16 @@ class NexmoMessage(NexmoRequest):
             # balance
             if self.request_type == 'balance':
                 self.request = "%s/account/get-balance/%s/%s" \
-                    % (self.server_url, self.sms['api_key'],
-                       self.sms['api_secret'])
+                    % (self.server_url, self.api_key, self.api_secret)
             # pricing
             elif self.request_type == 'pricing':
                 self.request = "%s/account/get-pricing/outbound/%s/%s/%s" \
-                    % (self.server_url, self.sms['api_key'],
-                       self.sms['api_secret'], self.sms['country'])
+                    % (self.server_url, self.api_key,
+                       self.api_secret, self.country)
             # numbers
             elif self.request_type == 'numbers':
                 self.request = "%s/account/numbers/%s/%s" \
-                    % (self.server_url, self.sms['api_key'],
-                       self.sms['api_secret'])
+                    % (self.server_url, self.api_key, self.api_secret)
             return self.request
         else:
             # standard requests
@@ -181,8 +179,8 @@ class NexmoMessage(NexmoRequest):
     def set_bin_info(self, body, udh):
         # automatically transforms msg to binary SMS
         self.request_type = 'binary'
-        self.sms['body'] = body
-        self.sms['udh'] = udh
+        self.body = body
+        self.udh = udh
 
     def set_text_info(self, text):
         # automatically transforms msg to text SMS
@@ -199,17 +197,17 @@ class NexmoMessage(NexmoRequest):
     def set_vcal_info(self, vcal):
         # automatically transforms msg to vcal SMS
         self.request_type = 'vcal'
-        self.sms['vcal'] = vcal
+        self.vcal = vcal
 
     def set_vcard_info(self, vcard):
         # automatically transforms msg to vcard SMS
         self.request_type = 'vcard'
-        self.sms['vcard'] = vcard
+        self.vcard = vcard
 
     def set_wappush_info(self, title, url, validity=False):
         # automatically transforms msg to wappush SMS
         self.request_type = 'wappush'
-        self.sms['title'] = title
-        self.sms['url'] = url
-        self.sms['validity'] = validity
+        self.title = title
+        self.url = url
+        self.validity = validity
 
