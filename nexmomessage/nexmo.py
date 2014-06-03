@@ -83,13 +83,10 @@ class NexmoRequest(object):
 class Nexmo2FA(NexmoRequest):
     def __init__(self, api_key, api_secret, to_number, pin, request_type, *args, **kwargs):
         super(Nexmo2FA, self).__init__(api_key, api_secret, request_type, *args, **kwargs)
-                }
         self.to_number = to_number
         self.pin = pin
 
     def build_request(self):
-        if not self.token:
-            return False
         server = "%s/sc/us/2fa/%s" % (self.server_url, self.request_type)
         self.params = {
                     'api_key': self.api_key,
