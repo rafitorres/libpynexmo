@@ -151,14 +151,16 @@ class NexmoMessage(NexmoRequest):
 
     def check_sms(self):
         # mandatory parameters for all requests
-        if not self.sms.get('api_key') or not self.sms.get('api_secret'):
+        if not getattr(self, 'api_key') or \
+            not self.sms.get('api_secret', None):
             raise Exception("API key or secret not set")
 
         # API requests handling
         if self.request_type in self.apireqs:
             if self.request_type == 'balance' or request_type == 'numbers':
                 return True
-            elif self.request_type == 'pricing' and not self.sms.get('country'):
+            elif self.request_type == 'pricing' and \
+                not getattr(self, 'country', None):
                 raise Exception("Pricing needs country")
             return True
         # SMS logic, check Nexmo doc for details
@@ -166,17 +168,19 @@ class NexmoMessage(NexmoRequest):
             raise Exception("Unknown type")
         elif self.request_type == 'text' and not self.text:
             raise Exception("text missing")
-        elif self.request_type == 'binary' and (not self.sms.get('body') or
-                                               not self.sms.get('udh')):
+        elif self.request_type == 'binary' and \
+            (not getattr(self, 'body', None) or
+                not getattr(self, 'udh', None)):
             raise Exception("Binary payload missing")
-        elif self.request_type == 'wappush' and (not self.sms.get('title') or
-                                                not self.sms.get('url')):
+        elif self.request_type == 'wappush' and \
+            (not getattr(self, 'title', None) or
+            not getattr(self, 'url'), None):
             raise Exception("Title or URL missing")
-        elif self.request_type == 'vcal' and not self.sms.get('vcal'):
+        elif self.request_type == 'vcal' and not getattr(self, 'vcal', None):
             raise Exception("vCal data missing")
-        elif self.request_type == 'vcard' and not self.sms.get('vcard'):
+        elif self.request_type == 'vcard' and not getattr(self, 'vcard', None):
             raise Exception("vCard data missing")
-        elif not self.sms.get('from') or not self.sms.get('to'):
+        elif not getattr(self, 'from') or not self.sms.get('to', None):
             raise Exception("From or to missing")
         return True
 
