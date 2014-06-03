@@ -151,8 +151,8 @@ class NexmoMessage(NexmoRequest):
 
     def check_sms(self):
         # mandatory parameters for all requests
-        if not getattr(self, 'api_key') or \
-            not self.sms.get('api_secret', None):
+        if not getattr(self, 'api_key', None) or \
+            not getattr(self, 'api_secret', None):
             raise Exception("API key or secret not set")
 
         # API requests handling
@@ -174,18 +174,18 @@ class NexmoMessage(NexmoRequest):
             raise Exception("Binary payload missing")
         elif self.request_type == 'wappush' and \
             (not getattr(self, 'title', None) or
-            not getattr(self, 'url'), None):
+            not getattr(self, 'url', None):
             raise Exception("Title or URL missing")
         elif self.request_type == 'vcal' and not getattr(self, 'vcal', None):
             raise Exception("vCal data missing")
         elif self.request_type == 'vcard' and not getattr(self, 'vcard', None):
             raise Exception("vCard data missing")
-        elif not getattr(self, 'from') or not self.sms.get('to', None):
+        elif not getattr(self, 'from', None) or not getattr(self, 'to', None):
             raise Exception("From or to missing")
         return True
 
     def get_details(self):
-        return self.sms
+        return self.__dict__
 
     def set_bin_info(self, body, udh):
         # automatically transforms msg to binary SMS
