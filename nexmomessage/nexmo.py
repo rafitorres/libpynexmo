@@ -178,7 +178,7 @@ class NexmoMessage(NexmoRequest):
             raise NexmoException("Binary payload missing")
         elif self.request_type == 'wappush' and \
             (not getattr(self, 'title', None) or
-            not getattr(self, 'url', None):
+            not getattr(self, 'url', None)):
             raise NexmoException("Title or URL missing")
         elif self.request_type == 'vcal' and not getattr(self, 'vcal', None):
             raise NexmoException("vCal data missing")
