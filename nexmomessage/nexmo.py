@@ -38,6 +38,10 @@ BASEURL = "https://rest.nexmo.com"
 assert BASEURL.startswith('https://'), "The Nexmo API base URL must be SSL-secured (i.e. must start with 'https://'.)"
 
 
+class NexmoException(Exception):
+    pass
+
+
 class NexmoRequest(object):
     reqtypes = [
         'json',
@@ -46,7 +50,7 @@ class NexmoRequest(object):
 
     def __init__(self, api_key, api_secret, request_type, *args, **kwargs):
         if request_type not in self.reqtypes:
-            raise Exception("Unknown request type.")
+            raise NexmoException("Unknown request type.")
 
         self.request_type = request_type
         self.api_key = api_key
@@ -153,7 +157,7 @@ class NexmoMessage(NexmoRequest):
         # mandatory parameters for all requests
         if not getattr(self, 'api_key', None) or \
             not getattr(self, 'api_secret', None):
-            raise Exception("API key or secret not set")
+            raise NexmoException("API key or secret not set")
 
         # API requests handling
         if self.request_type in self.apireqs:
@@ -161,27 +165,27 @@ class NexmoMessage(NexmoRequest):
                 return True
             elif self.request_type == 'pricing' and \
                 not getattr(self, 'country', None):
-                raise Exception("Pricing needs country")
+                raise NexmoException("Pricing needs country")
             return True
         # SMS logic, check Nexmo doc for details
         elif self.request_type not in self.smstypes:
-            raise Exception("Unknown type")
+            raise NexmoException("Unknown type")
         elif self.request_type == 'text' and not self.text:
-            raise Exception("text missing")
+            raise NexmoException("text missing")
         elif self.request_type == 'binary' and \
             (not getattr(self, 'body', None) or
                 not getattr(self, 'udh', None)):
-            raise Exception("Binary payload missing")
+            raise NexmoException("Binary payload missing")
         elif self.request_type == 'wappush' and \
             (not getattr(self, 'title', None) or
             not getattr(self, 'url', None):
-            raise Exception("Title or URL missing")
+            raise NexmoException("Title or URL missing")
         elif self.request_type == 'vcal' and not getattr(self, 'vcal', None):
-            raise Exception("vCal data missing")
+            raise NexmoException("vCal data missing")
         elif self.request_type == 'vcard' and not getattr(self, 'vcard', None):
-            raise Exception("vCard data missing")
+            raise NexmoException("vCard data missing")
         elif not getattr(self, 'from', None) or not getattr(self, 'to', None):
-            raise Exception("From or to missing")
+            raise NexmoException("From or to missing")
         return True
 
     def get_details(self):
