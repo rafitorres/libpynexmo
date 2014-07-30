@@ -125,19 +125,19 @@ class NexmoMessage(NexmoRequest):
         # check SMS logic
         if not self.check_sms():
             return False
-        elif self.request_type in self.apireqs:
+        elif self.sms_type in self.apireqs:
             # developer API
             # balance
-            if self.request_type == 'balance':
+            if self.sms_type == 'balance':
                 self.request = "%s/account/get-balance/%s/%s" \
                     % (self.server_url, self.api_key, self.api_secret)
             # pricing
-            elif self.request_type == 'pricing':
+            elif self.sms_type == 'pricing':
                 self.request = "%s/account/get-pricing/outbound/%s/%s/%s" \
                     % (self.server_url, self.api_key,
                        self.api_secret, self.country)
             # numbers
-            elif self.request_type == 'numbers':
+            elif self.sms_type == 'numbers':
                 self.request = "%s/account/numbers/%s/%s" \
                     % (self.server_url, self.api_key, self.api_secret)
             return self.request
@@ -160,31 +160,31 @@ class NexmoMessage(NexmoRequest):
             raise NexmoException("API key or secret not set")
 
         # API requests handling
-        if self.request_type in self.apireqs:
-            if self.request_type == 'balance' or request_type == 'numbers':
+        if self.sms_type in self.apireqs:
+            if self.sms_type == 'balance' or sms_type == 'numbers':
                 return True
-            elif self.request_type == 'pricing' and \
+            elif self.sms_type == 'pricing' and \
                 not getattr(self, 'country', None):
                 raise NexmoException("Pricing needs country")
             return True
         # SMS logic, check Nexmo doc for details
-        elif self.request_type not in self.smstypes:
+        elif self.sms_type not in self.smstypes:
             raise NexmoException("Unknown type")
-        elif self.request_type == 'text' and not self.text:
+        elif self.sms_type == 'text' and not self.text:
             raise NexmoException("text missing")
-        elif self.request_type == 'binary' and \
+        elif self.sms_type == 'binary' and \
             (not getattr(self, 'body', None) or
                 not getattr(self, 'udh', None)):
             raise NexmoException("Binary payload missing")
-        elif self.request_type == 'wappush' and \
+        elif self.sms_type == 'wappush' and \
             (not getattr(self, 'title', None) or
             not getattr(self, 'url', None)):
             raise NexmoException("Title or URL missing")
-        elif self.request_type == 'vcal' and not getattr(self, 'vcal', None):
+        elif self.sms_type == 'vcal' and not getattr(self, 'vcal', None):
             raise NexmoException("vCal data missing")
-        elif self.request_type == 'vcard' and not getattr(self, 'vcard', None):
+        elif self.sms_type == 'vcard' and not getattr(self, 'vcard', None):
             raise NexmoException("vCard data missing")
-        elif not getattr(self, 'from', None) or not getattr(self, 'to', None):
+        elif not getattr(self, 'from_number', None) or not getattr(self, 'to_number', None):
             raise NexmoException("From or to missing")
         return True
 
@@ -193,35 +193,35 @@ class NexmoMessage(NexmoRequest):
 
     def set_bin_info(self, body, udh):
         # automatically transforms msg to binary SMS
-        self.request_type = 'binary'
+        self.sms_type = 'binary'
         self.body = body
         self.udh = udh
 
     def set_text_info(self, text):
         # automatically transforms msg to text SMS
-        self.request_type = 'text'
+        self.sms_type = 'text'
         # if message have unicode symbols send as unicode
         try:
             text.decode('ascii')
         except:
-            self.request_type = 'unicode'
+            self.sms_type = 'unicode'
             if isinstance(text, unicode):
                 text = text.encode('utf8')
         self.text = text
 
     def set_vcal_info(self, vcal):
         # automatically transforms msg to vcal SMS
-        self.request_type = 'vcal'
+        self.sms_type = 'vcal'
         self.vcal = vcal
 
     def set_vcard_info(self, vcard):
         # automatically transforms msg to vcard SMS
-        self.request_type = 'vcard'
+        self.sms_type = 'vcard'
         self.vcard = vcard
 
     def set_wappush_info(self, title, url, validity=False):
         # automatically transforms msg to wappush SMS
-        self.request_type = 'wappush'
+        self.sms_type = 'wappush'
         self.title = title
         self.url = url
         self.validity = validity
