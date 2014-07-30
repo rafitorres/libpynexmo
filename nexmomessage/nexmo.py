@@ -119,6 +119,8 @@ class NexmoMessage(NexmoRequest):
 
     def __init__(self, api_key, api_secret, from_number, to_number, request_type, text, *args, **kwargs):
         super(NexmoMessage, self).__init__(api_key, api_secret, request_type)
+        self.from_number = from_number
+        self.to_number = to_number
         self.set_text_info(text)
 
     def build_request(self):
@@ -148,7 +150,9 @@ class NexmoMessage(NexmoRequest):
                 'api_key': self.api_key,
                 'api_secret': self.api_secret,
                 'from': self.from_number,
-                'to': self.to_number
+                'to': self.to_number,
+                'type': self.sms_type,
+                'text': self.text
             }
             self.request = server + "?" + urllib.urlencode(self.params)
             return self.request
