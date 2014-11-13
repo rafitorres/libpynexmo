@@ -57,6 +57,10 @@ class NexmoRequest(object):
         self.request_type = request_type
 
     @property
+    def filtered_params(self):
+        return {k:v for (k,v) in self.params.items() if v is not None}
+
+    @property
     def server_url(self):
         return BASEURL
 
@@ -105,7 +109,7 @@ class Nexmo2FA(NexmoRequest):
                     'to': self.to_number,
                     'pin': self.pin
         }
-        self.request = server + "?" + urllib.urlencode(self.params)
+        self.request = server + "?" + urllib.urlencode(self.filtered_params)
         return self.request
 
 
@@ -163,7 +167,7 @@ class NexmoMessage(NexmoRequest):
                 'type': self.sms_type,
                 'text': self.text
             }
-            self.request = server + "?" + urllib.urlencode(self.params)
+            self.request = server + "?" + urllib.urlencode(self.filtered_params)
             return self.request
 
     def check_sms(self):
@@ -256,7 +260,7 @@ class NexmoVerificationRequest(NexmoRequest):
             'code_length': self.code_length,
             'lg': self.lg
         }
-        self.request = server + "?" + urllib.urlencode(self.params)
+        self.request = server + "?" + urllib.urlencode(self.filtered_params)
         return self.request
 
 
@@ -278,5 +282,5 @@ class NexmoVerificationCheckRequest(NexmoRequest):
             'code': self.code,
             'ip': self.ip
         }
-        self.request = server + "?" + urllib.urlencode(self.params)
+        self.request = server + "?" + urllib.urlencode(self.filtered_params)
         return self.request
