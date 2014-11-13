@@ -52,9 +52,9 @@ class NexmoRequest(object):
         if request_type not in self.reqtypes:
             raise NexmoException("Unknown request type.")
 
-        self.request_type = request_type
         self.api_key = api_key
         self.api_secret = api_secret
+        self.request_type = request_type
 
     @property
     def server_url(self):
