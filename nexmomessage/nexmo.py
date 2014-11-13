@@ -32,7 +32,7 @@ import urllib2
 import urlparse
 import json
 
-BASEURL = "https://rest.nexmo.com"
+BASEURL = "https://api.nexmo.com"
 
 # Ensure that all requests are sent over SSL, since the API Key is included
 assert BASEURL.startswith('https://'), "The Nexmo API base URL must be SSL-secured (i.e. must start with 'https://'.)"
@@ -233,3 +233,50 @@ class NexmoMessage(NexmoRequest):
         self.title = title
         self.url = url
         self.validity = validity
+
+class NexmoVerificationRequest(NexmoRequest):
+    def __init__(self, api_key, api_secret, request_type, number, *args, **kwargs):
+        super(NexmoVerificationRequest, self).__init__(api_key, api_secret, request_type, *args, **kwargs)
+        self.number = number
+        self.sender_id = kwargs.get('sender_id')
+        self.brand = kwargs.get('brand')
+        self.code_length = kwargs.get('code_length')
+        self.lg = kwargs.get('lg')
+
+    def build_request(self):
+        self.check_request()
+
+        server = "%s/verify/%s" % (self.server_url, self.request_type)
+        self.params = {
+            'api_key': self.api_key,
+            'api_secret': self.api_secret,
+            'number': self.number,
+            'sender_id': self.sender_id,
+            'brand': self.brand,
+            'code_length': self.code_length,
+            'lg': self.lg
+        }
+        self.request = server + "?" + urllib.urlencode(self.params)
+        return self.request
+
+
+class NexmoVerificationCheckRequest(NexmoRequest):
+    def __init__(self, api_key, api_secret, request_type, request_id, code, *args, **kwargs):
+        super(NexmoVerificationRequest, self).__init__(api_key, api_secret, request_type, *args, **kwargs)
+        self.request_id = request_id
+        self.code = code
+        self.ip = kwargs.get('ip')
+
+    def build_request(self):
+        self.check_request()
+
+        server = "%s/verify/check/%s" % (self.server_url, self.request_type)
+        self.params = {
+            'api_key': self.api_key,
+            'api_secret': self.api_secret,
+            'request_id': self.request_id,
+            'code': self.code,
+            'ip': self.ip
+        }
+        self.request = server + "?" + urllib.urlencode(self.params)
+        return self.request
