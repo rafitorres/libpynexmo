@@ -63,6 +63,11 @@ class NexmoRequest(object):
     def build_request(self):
         raise NotImplementedError
 
+    def check_request(self):
+        # mandatory parameters for all requests
+        if not getattr(self, 'api_key', None) or not getattr(self, 'api_secret', None):
+            raise NexmoException("API key or secret not set")
+
     def send_request(self):
         if not self.build_request():
             return False
@@ -91,6 +96,8 @@ class Nexmo2FA(NexmoRequest):
         self.pin = pin
 
     def build_request(self):
+        self.check_request()
+
         server = "%s/sc/us/2fa/%s" % (self.server_url, self.request_type)
         self.params = {
                     'api_key': self.api_key,
@@ -124,6 +131,8 @@ class NexmoMessage(NexmoRequest):
         self.set_text_info(text)
 
     def build_request(self):
+        self.check_request()
+
         # check SMS logic
         if not self.check_sms():
             return False
@@ -158,11 +167,6 @@ class NexmoMessage(NexmoRequest):
             return self.request
 
     def check_sms(self):
-        # mandatory parameters for all requests
-        if not getattr(self, 'api_key', None) or \
-            not getattr(self, 'api_secret', None):
-            raise NexmoException("API key or secret not set")
-
         # API requests handling
         if self.sms_type in self.apireqs:
             if self.sms_type == 'balance' or sms_type == 'numbers':
