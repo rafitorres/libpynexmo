@@ -266,7 +266,7 @@ class NexmoVerificationRequest(NexmoRequest):
 
 class NexmoVerificationCheckRequest(NexmoRequest):
     def __init__(self, api_key, api_secret, request_type, request_id, code, *args, **kwargs):
-        super(NexmoVerificationRequest, self).__init__(api_key, api_secret, request_type, *args, **kwargs)
+        super(NexmoVerificationCheckRequest, self).__init__(api_key, api_secret, request_type, *args, **kwargs)
         self.request_id = request_id
         self.code = code
         self.ip = kwargs.get('ip')
