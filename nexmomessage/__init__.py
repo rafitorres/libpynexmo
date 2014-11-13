@@ -1,1 +1,1 @@
-from nexmo import Nexmo2FA, NexmoMessage, NexmoVerificationRequest
+from nexmo import Nexmo2FA, NexmoMessage, NexmoVerificationCheckRequest, NexmoVerificationRequest
