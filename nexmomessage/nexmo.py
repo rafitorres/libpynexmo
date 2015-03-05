@@ -32,7 +32,7 @@ import urllib2
 import urlparse
 import json
 
-BASEURL = "https://api.nexmo.com"
+BASEURL = "https://rest.nexmo.com"
 
 # Ensure that all requests are sent over SSL, since the API Key is included
 assert BASEURL.startswith('https://'), "The Nexmo API base URL must be SSL-secured (i.e. must start with 'https://'.)"
