@@ -32,11 +32,6 @@ import urllib2
 import urlparse
 import json
 
-BASEURL = "https://rest.nexmo.com"
-
-# Ensure that all requests are sent over SSL, since the API Key is included
-assert BASEURL.startswith('https://'), "The Nexmo API base URL must be SSL-secured (i.e. must start with 'https://'.)"
-
 
 class NexmoException(Exception):
     pass
@@ -59,10 +54,6 @@ class NexmoRequest(object):
     @property
     def filtered_params(self):
         return {k:v for (k,v) in self.params.items() if v is not None}
-
-    @property
-    def server_url(self):
-        return BASEURL
 
     def build_request(self):
         raise NotImplementedError
@@ -127,6 +118,7 @@ class NexmoMessage(NexmoRequest):
         'pricing',
         'numbers'
     ]
+    server_url = "https://rest.nexmo.com"
 
     def __init__(self, api_key, api_secret, from_number, to_number, request_type, text, *args, **kwargs):
         super(NexmoMessage, self).__init__(api_key, api_secret, request_type)
@@ -239,6 +231,8 @@ class NexmoMessage(NexmoRequest):
         self.validity = validity
 
 class NexmoVerificationRequest(NexmoRequest):
+    server_url = "https://api.nexmo.com"
+
     def __init__(self, api_key, api_secret, request_type, number, *args, **kwargs):
         super(NexmoVerificationRequest, self).__init__(api_key, api_secret, request_type, *args, **kwargs)
         self.number = number
@@ -265,6 +259,8 @@ class NexmoVerificationRequest(NexmoRequest):
 
 
 class NexmoVerificationCheckRequest(NexmoRequest):
+    server_url = "https://api.nexmo.com"
+
     def __init__(self, api_key, api_secret, request_type, request_id, code, *args, **kwargs):
         super(NexmoVerificationCheckRequest, self).__init__(api_key, api_secret, request_type, *args, **kwargs)
         self.request_id = request_id
